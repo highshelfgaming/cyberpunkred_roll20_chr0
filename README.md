@@ -26,7 +26,7 @@ The original html, css, js, and json files turning this into a Cyberpunk Red Jum
 
 The original sheet by Gerdofal was edited by High Shelf Gaming as a preliminary character sheet for use at launch of Cyberpunk Red. 
 High Shelf Gaming will not continue maintenance of this character sheet.
- * another sheet is currently in development which does not use any of the above source materials.
+Another sheet is currently in development which does not use any of the above source materials.
 Art for the character sheet was created by https://twitter.com/greg1756
 
 High Shelf Gaming started as a podcast and has evolved into a community of gamers. contact us at: https://twitter.com/highshelfgaming
