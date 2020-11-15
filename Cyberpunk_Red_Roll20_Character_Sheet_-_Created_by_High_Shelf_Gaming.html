@@ -1,0 +1,2460 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>cyberpunkredv2</title>
+<style type="text/css">
+@import url("Cyberpunk Red Roll20 Character Sheet - Created by High Shelf Gaming.css");
+</style>
+</head>
+
+<body>
+	<!--
+Updated 10/10/2019
+-->
+
+
+<script type="text/worker">
+
+function sheetlog(logstring) {
+	//Makes an easily filterable log entry for debugging purposes.
+	console.log("SHEETLOG: "+logstring);
+}
+
+
+function update_damagemod() {
+	sheetlog("Updating damage modifier");
+	
+	getAttrs(["othermod", "damageserious","damagefatal","facedown","headshot","unfamiliar","noinstruction","wrongtools","complextask","neverdone","underattack","drunkdruggedtired","secretly","obscured","badsleep"], function(values) {
+
+		var setvalue=0;
+		var damagetotal=0;
+		if(Number(values.damagefatal)==-6) {
+			damagetotal=-6;
+			setAttrs({
+				damageserious: -3
+			});
+		} else if (Number(values.damageserious)==-3) {
+			damagetotal=-3;
+		}
+		setvalue=setvalue+damagetotal;
+		setvalue=setvalue+Number(values.facedown);
+		setvalue=setvalue+Number(values.headshot);
+		setvalue=setvalue+Number(values.unfamiliar);
+		setvalue=setvalue+Number(values.noinstruction);
+		setvalue=setvalue+Number(values.wrongtools);
+		setvalue=setvalue+Number(values.complextask);
+		setvalue=setvalue+Number(values.neverdone);
+		setvalue=setvalue+Number(values.underattack);
+		setvalue=setvalue+Number(values.drunkdruggedtired);
+		setvalue=setvalue+Number(values.secretly);
+		setvalue=setvalue+Number(values.obscured);
+		setvalue=setvalue+Number(values.badsleep);
+		setvalue=setvalue+Number(values.othermod);
+		
+		setAttrs({
+			finalmodifier: setvalue
+		});
+	});
+}
+
+function clear_mods() {
+	setAttrs({
+		damageserious: 0,
+		damagefatal: 0,
+		facedown: 0,
+		headshot: 0,
+		unfamiliar: 0,
+		noinstruction: 0,
+		wrongtools: 0,
+		complextask: 0,
+		neverdone: 0,
+		underattack: 0,
+		drunkdruggedtired: 0,
+		secretly: 0,
+		obscured: 0,
+		badsleep: 0,
+		othermod: 0,
+		finalmodifier: 0
+	});
+}
+
+function clear_mods2() {
+	setAttrs({
+		netrunnerfinalmodifier: 0,
+	});
+}
+
+function update_culturalfamiliarity() {
+	sheetlog("Updating cultural familiarity");
+	
+	getAttrs(["education"], function(values) {
+	
+		var education = Number(values.education);
+		var setvalue = Math.floor(0);
+		setAttrs({
+			culturalfamiliarity: setvalue
+		});
+	});
+	
+}
+
+
+function update_hp() {
+	sheetlog("Updating hp");
+	
+	getAttrs(["body", "will"], function(values) {
+	
+		var will = Number(values.will);
+		var body = Number(values.body);
+		var setmax = Math.floor((((body+will)/2)*5)+(10));
+		var sethalf = Math.floor(setmax/2);
+		var setdeath = Math.floor(body);
+		setAttrs({
+			startinghits: setmax,
+			seriouslywounded: sethalf,
+			deathsave: setdeath
+		});
+	});
+	
+}
+
+function set_humanity() {
+    sheetlog("Set humanity");
+    
+    getAttrs(["semp"], function(values){
+        var semp = Number(values.semp);
+        var sethumanity = Math.floor(semp*10);
+        setAttrs({
+            starthumanity: sethumanity
+        });
+    });
+}
+
+function update_currenthumanity() {
+	sheetlog("update currenthumanity");
+	
+	getAttrs(["ledger", "starthumanity"], function(values) {
+	
+		var ledger = Number(values.ledger);
+		var starthumanity = Number(values.starthumanity);
+		var setcurrenthumanity = Math.floor(starthumanity+ledger);
+		setAttrs({
+			currenthumanity: setcurrenthumanity
+		});
+	});
+}
+
+function update_skill_rollable_byname(sourceattr) {	
+	getAttrs([sourceattr, "education"], function(values) {
+	    sheetlog("Updating Rollable for " + sourceattr + " by name.");
+		var sourceattrroll = sourceattr + "roll";
+		var sourceattrflag = sourceattr + "flag";
+		var education = Number(values.education);
+		var newvalue = Number(values[sourceattr]);
+		var culturalfamiliarity = Math.floor(0);
+		
+	if (culturalfamiliarity==0||sourceattr=="interface") {
+		setflag = " ";
+		setroll = newvalue;		
+	} else if(newvalue==0) {
+		setflag = culturalfamiliarity;
+		setroll = culturalfamiliarity;
+	} else if (newvalue<culturalfamiliarity) {
+		setflag = " ";
+		setroll = newvalue;
+	} else {
+		setflag = " ";
+		setroll = newvalue;
+	}
+	
+	setAttrs({
+			[sourceattrroll]: setroll,
+			[sourceattrflag]: setflag
+		});	
+	});
+}
+
+function update_allskills() {
+	update_skill_rollable_byname("brawling");
+	update_skill_rollable_byname("evasion");
+	update_skill_rollable_byname("martialarts");
+	update_skill_rollable_byname("meleeweapon");
+	update_skill_rollable_byname("marksmanship");
+	update_skill_rollable_byname("archery");
+	update_skill_rollable_byname("autofire");
+	update_skill_rollable_byname("handgun");
+	update_skill_rollable_byname("shoulderarms");
+	update_skill_rollable_byname("heavyweapons");
+	update_skill_rollable_byname("concentration");
+	update_skill_rollable_byname("concealrevealobject");
+	update_skill_rollable_byname("lipreading");
+	update_skill_rollable_byname("perception");
+	update_skill_rollable_byname("tracking");
+	update_skill_rollable_byname("driving");
+	update_skill_rollable_byname("drivelandvehicle");
+	update_skill_rollable_byname("pilotairvehicle");
+	update_skill_rollable_byname("pilotseavehicle");
+	update_skill_rollable_byname("riding");
+	update_skill_rollable_byname("athletics");
+	update_skill_rollable_byname("contortionist");
+	update_skill_rollable_byname("dance");
+	update_skill_rollable_byname("endurance");
+	update_skill_rollable_byname("resisttorturedrugs");
+	update_skill_rollable_byname("stealth");
+	update_skill_rollable_byname("bribery");
+	update_skill_rollable_byname("conversation");
+	update_skill_rollable_byname("humanperception");
+	update_skill_rollable_byname("interrogation");
+	update_skill_rollable_byname("persuasion");
+	update_skill_rollable_byname("personalgrooming");
+	update_skill_rollable_byname("wardrobestyle");
+	update_skill_rollable_byname("streetwise");
+	update_skill_rollable_byname("trading");
+	update_skill_rollable_byname("basictech");
+	update_skill_rollable_byname("cybertech");
+	update_skill_rollable_byname("firstaid");
+	update_skill_rollable_byname("airvehicletech");
+	update_skill_rollable_byname("landvehicletech");
+	update_skill_rollable_byname("seavehicletech");
+	update_skill_rollable_byname("demolitions");
+	update_skill_rollable_byname("electronicssecuritytech");
+	update_skill_rollable_byname("forgery");
+	update_skill_rollable_byname("paintdrawsculpt");
+	update_skill_rollable_byname("paramedic");
+	update_skill_rollable_byname("photgraphyfilm");
+	update_skill_rollable_byname("picklock");
+	update_skill_rollable_byname("pickpocket");
+	update_skill_rollable_byname("weaponstech");
+	update_skill_rollable_byname("acting");
+	update_skill_rollable_byname("playinstrument");
+	update_skill_rollable_byname("accounting");
+	update_skill_rollable_byname("animalhandling");
+	update_skill_rollable_byname("bureaucracy");
+	update_skill_rollable_byname("business");
+	update_skill_rollable_byname("composition");
+	update_skill_rollable_byname("criminology");
+	update_skill_rollable_byname("cryptography");
+	update_skill_rollable_byname("deduction");
+	update_skill_rollable_byname("gamble");
+	update_skill_rollable_byname("language");
+	update_skill_rollable_byname("librarysearch");
+	update_skill_rollable_byname("science");
+	update_skill_rollable_byname("tactics");
+	update_skill_rollable_byname("photographyfilm");
+	update_skill_rollable_byname("wildernesssurvival");
+	update_skill_rollable_byname("localexpert");
+	update_skill_rollable_byname("interface");
+	update_skill_rollable_byname("specialability");
+	update_skill_rollable_byname("localexpert2");
+	update_skill_rollable_byname("localexpert3");
+	update_skill_rollable_byname("language2");
+	update_skill_rollable_byname("language3");
+	update_skill_rollable_byname("education2");
+}
+
+// Below are event listeners that call appropriate functions
+
+on('sheet:opened',function() {
+	sheetlog("Sheet opened");
+	update_damagemod();
+	update_culturalfamiliarity();
+	update_hp();
+	update_allskills();
+});
+
+
+on("change:othermod change:damageserious change:damagefatal change:facedown change:headshot change:unfamiliar change:noinstruction change:wrongtools change:complextask change:neverdone change:underattack change:drunkdruggedtired change:secretly change:obscured change:badsleep", function() {
+	sheetlog("Modifier Changed");
+	update_damagemod();
+});
+
+on("change:education", function() {
+	sheetlog("Education Changed");
+	update_culturalfamiliarity();
+	update_allskills();
+});
+
+on("change:body", function() {
+	sheetlog("Body Changed");
+	update_hp();
+});
+
+on("change:will", function() {
+    sheetlog("Will Changed");
+    update_hp();
+});
+
+on("change:semp", function() {
+    sheetlog("Emp Changed");
+    set_humanity();
+});
+
+
+on("change:interface change:brawling change:evasion change:meleeweapon change:marksmanship change:concentration change:perception change:tracking change:driving change:athletics change:stealth change:bribery change:conversation change:humanperception change:interrogation change:persuasion change:basictech change:cybertech change:firstaid change:playinstrument change:localexpert change:concealrevealobject change:lipreading change:contortionist change:dance change:endurance change:resisttorturedrugs change:drivelandvehicle change:pilotairvehicle change:pilotseavehicle change:accounting change:animalhandling change:bureaucracy change:business change:composition change:criminology change:deduction change:gamble change:language change:librarysearch change:science change:tactics change:wildernesssurvival change:martialarts change:acting change:archery change:autofire change:handgun change:shoulderarms change:heavyweapons change:personalgrooming change:wardrobestyle change:streetwise change:trading change:airvehicletech change:landvehicletech change:seavehicletech change:demolitions change:electronicssecuritytech change:forgery change:paintdrawsculpt change:paramedic change:photographyfilm change:picklock change:pickpocket change:weaponstech change:localexpert2 change:localexpert3 change:language2 change:language3 change:education2 change:cryptography", function(eventInfo) {
+
+	sheetlog(eventInfo.sourceAttribute + " Changed");
+	update_skill_rollable_byname(eventInfo.sourceAttribute);
+});
+
+on("clicked:clearmods", function() {
+	sheetlog("Clearmods Clicked");
+	clear_mods();
+	update_damagemod();
+});
+
+on("clicked:clearmods2", function() {
+	sheetlog("Clearmods 2 Clicked")
+	clear_mods2();
+});
+
+</script>
+
+<input type="checkbox" name="attr_gmhidecheckbox" class="sheet-hidable-gm-switch">
+<div class="sheet-hidable-playersection">
+  <input type="radio" name="selecttab" class="tab tab1" value="1" CHECKED>
+  <span class="tab">Sheet</span>
+	<input type="radio" name="selecttab" class="tab tab8" value="8">
+  <span class="tab">Skills</span>
+  <!--<input type="radio" name="selecttab" class="tab tab2" value="2">
+  <span class="tab">Weapons</span>-->																  
+  <input type="radio" name="selecttab" class="tab tab3" value="3">
+  <span class="tab">Actions</span>
+  <input type="radio" name="selecttab" class="tab tab4" value="4">
+  <span class="tab">Cyberware</span>
+  <input type="radio" name="selecttab" class="tab tab5" value="5">
+  <span class="tab">Gear</span>
+  <input type="radio" name="selecttab" class="tab tab6" value="6">
+  <span class="tab">Lifepath</span>
+  <input type="radio" name="selecttab" class="tab tab7" value="7">
+  <span class="tab">Settings</span>
+	
+  <div class="tab-content tab1">
+    <div class="sectionbox borderred widthpercent100">
+      <div class="sectionbox widthpercent100">
+        <div class="sectionbox widthpercent33">Character Name<br>
+          <input type="text" name="attr_charactername">
+        </div>
+        <div class="sectionbox widthpercent33">Character Role<br>
+          <input type="text" name="attr_characterrole">
+        </div>
+        <div class="sectionbox widthpercent33">Player Name<br>
+          <input type="text" name="attr_playername">
+        </div>
+      </div>
+    </div>
+	  <div class="sectionbox borderred widthpercent100">
+		  <div class="sectionbox widthpercent33">
+	  <button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Roll 1d10}} {{roll=[[1d10]]}}" name="roll_d10">Roll 1d10</button></div>
+	  <div class="sectionbox widthpercent33">
+	  <button type="roll" value="&{template:jsk2}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Roll 1d6}} {{roll=[[1d6]]}}" name="roll_1d6">Roll 1d6</button></div>
+		   
+		  <div class="sectionbox widthpercent33">
+	  <button type="roll" value="&{template:jsk2}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Roll 2d6}} {{roll=[[2d6]]}}" name="roll_2d6">Roll 2d6</button></div></div>  
+    <div class="sectionbox borderred widthpercent100">
+      <h3>Attributes</h3>
+      <div class="sectionbox widthpercent100">
+        <div class="sectionbox widthpercent10"> INT<br>
+          <input type="number" name="attr_int">
+        </div>
+        <div class="sectionbox widthpercent10"> REF<br>
+          <input type="number" name="attr_ref">
+        </div>
+        <div class="sectionbox widthpercent10"> DEX<br>
+          <input type="number" name="attr_dex">
+        </div>
+        <div class="sectionbox widthpercent10"> TECH<br>
+          <input type="number" name="attr_tech">
+        </div>
+        <div class="sectionbox widthpercent10"> COOL<br>
+          <input type="number" name="attr_cool">
+        </div>
+        <div class="sectionbox widthpercent10"> WILL<br>
+          <input type="number" name="attr_will">
+        </div>
+        <div class="sectionbox widthpercent10"> LUCK<br>
+          <input type="number" name="attr_luck">
+        </div>
+        <div class="sectionbox widthpercent10"> MOVE<br>
+          <input type="number" name="attr_move">
+        </div>
+        <div class="sectionbox widthpercent10"> BODY<br>
+          <input type="number" name="attr_body">
+        </div>
+        <div class="sectionbox widthpercent10"> EMP<br>
+          <input type="number" name="attr_emp">
+        </div>
+      </div>
+    </div>
+    <div class="sectionbox borderred widthpercent100">
+		<h3>Hits</h3>
+      <div class="sectionbox widthpercent33"> Starting Hits
+        <input type="number" name="attr_startinghits" readonly>
+      </div>
+      <div class="sectionbox widthpercent33"> Seriously Wounded
+        <input type="number" name="attr_seriouslywounded" readonly>
+      </div>
+      <div class="sectionbox widthpercent33"> Death Save
+        <input type="number" name="attr_deathsave" readonly>
+      </div>
+    </div>
+	  <div class="sectionbox borderred widthpercent100">
+		  <h3>Humanity</h3>
+        <div class="sectionbox widthpercent25">Starting Empathy
+          <input type="number" name="attr_semp">
+        </div>
+      <div class="sectionbox widthpercent25">Starting Humanity
+        <input type="number" name="attr_starthumanity" readonly>
+      </div>
+      <div class="sectionbox widthpercent25">Max Humanity
+        <input type="number" name="attr_maxhumanity">
+      </div>
+       <div class="sectionbox widthpercent25">Current Humanity
+		  <input type="number" name="attr_currenthumanity"></div>
+    </div>
+	     	 <div class="sectionbox borderred widthpercent100">
+		  <h3>XP Ledger</h3>
+		     <div class="sheet-columns">
+				 <div class="sectionbox widthpercent33">Available XP <input type="number" name="attr_xpledger"></div>
+	     <div class="sectionbox widthpercent33"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+			 <span></span><br>
+      <div class="sheet-body">
+			  
+  		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_xp1name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_xp1number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp2name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp2number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp3name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp3number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_xp4name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_xp4number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp5name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp5number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp6name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp6number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_xp7name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_xp7number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp8name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp8number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp9name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp9number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_xp10name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_xp10number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp11name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp11number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp12name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp12number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_xp13name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_xp13number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp14name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp14number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp15name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp15number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_xp16name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_xp16number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp17name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp17number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp18name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp18number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_xp19name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_xp19number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_xp20name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_xp20number"></div></div>
+	  		</div></div>
+			 </div></div>
+		  
+	<div class="sectionbox borderred widthpercent100">
+		<h3>Reputation</h3>
+	        <div class="sectionbox widthpercent33">Reputation<input type="number" name="attr_reputation"></div>
+      <div class="sectionbox widthpercent33"><button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Reputation Check}} {{roll=[[1d10]]}}" name="roll_reputation">Reputation Check</button></div>
+<div class="sectionbox widthpercent33">      <button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Facedown}} {{roll=[[@{cool} + @{reputation} + 1d10]]}}" name="roll_facedown">Facedown</button></div>
+		  
+    </div> </div>
+	
+  <div class="tab-content tab3">
+    <div class="sectionbox borderred widthpercent50">
+      <h3>Damage Level</h3>
+      <div class="sectionbox widthpercent50">
+        <input class="wordlist" type="checkbox" id="attr_damageserious" name="attr_damageserious" value="-3">
+        <label class="wordlist" for="attr_damageserious">Serious Wounds</label>
+      </div>
+      <div class="sectionbox widthpercent50">
+        <input class="wordlist" type="checkbox" id="attr_damagefatal" name="attr_damagefatal" value="-6">
+        <label class="wordlist" for="attr_damagefatal">Fatal Wounds</label>
+      </div>
+      <h3>Other Modifiers</h3>
+      <div class="sectionbox widthpercent50">
+        <input class="wordlist" type="checkbox" id="attr_facedown" name="attr_facedown" value="-2">
+        <label class="wordlist" for="attr_facedown">Lost Facedown</label>
+        <input class="wordlist" type="checkbox" id="attr_headshot" name="attr_headshot" value="-8">
+        <label class="wordlist" for="attr_headshot">Called Shot</label>
+        <input class="wordlist" type="checkbox" id="attr_unfamiliar" name="attr_unfamiliar" value="-4">
+        <label class="wordlist" for="attr_unfamiliar">Unfamiliar Equipment</label>
+        <input class="wordlist" type="checkbox" id="attr_noinstruction" name="attr_noinstruction" value="-1">
+        <label class="wordlist" for="attr_noinstruction">Night or Lowlight</label>
+        <input class="wordlist" type="checkbox" id="attr_wrongtools" name="attr_wrongtools" value="-2">
+        <label class="wordlist" for="attr_wrongtools">Wrong&nbsp;Tools</label>
+        <input class="wordlist" type="checkbox" id="attr_complextask" name="attr_complextask" value="-2">
+        <label class="wordlist" for="attr_complextask">Complex&nbsp;Task</label>
+      </div>
+      <div class="sectionbox widthpercent50">
+        <input class="wordlist" type="checkbox" id="attr_neverdone" name="attr_neverdone" value="-1">
+        <label class="wordlist" for="attr_neverdone">Never&nbsp;Done&nbsp;Before</label>
+        <input class="wordlist" type="checkbox" id="attr_underattack" name="attr_underattack" value="-2">
+        <label class="wordlist" for="attr_underattack">Under&nbsp;Stress&nbsp;or&nbsp;Attack</label>
+        <input class="wordlist" type="checkbox" id="attr_drunkdruggedtired" name="attr_drunkdruggedtired" value="-4">
+        <label class="wordlist" for="attr_drunkdruggedtired">Drunk/Drugged/Tired</label>
+        <input class="wordlist" type="checkbox" id="attr_secretly" name="attr_secretly" value="-4">
+        <label class="wordlist" for="attr_secretly">Performing&nbsp;Secretly</label>
+        <input class="wordlist" type="checkbox" id="attr_obscured" name="attr_obscured" value="-4">
+        <label class="wordlist" for="attr_obscured">Dark&nbsp;or&nbsp;Obscured</label>
+		  <input class="wordlist" type="checkbox" id="attr_badsleep" name="attr_badsleep" value="-2">
+        <label class="wordlist" for="attr_badsleep">Slept Uncomfortably</label>
+        <label>Other:&nbsp;&nbsp;
+          <input type="number" name="attr_othermod">
+        </label>
+      </div>
+      <div class="sectionbox widthpercent100">
+        <h3>Final Modifier</h3>
+        <input type="number" name="attr_finalmodifier" readonly>
+        <button type="action" name="act_clearmods">Clear</button>
+      </div>
+    </div>
+    <div class="sectionbox widthpercent30 borderred">
+      <h3>Damage Taken</h3>
+      <input type="radio" class="dmg" name="attr_dmg" value="0" checked="checked">
+      <span></span>Undamaged <br>
+      <input type="radio" class="dmg" name="attr_dmg" value="1">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="2">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="3">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="4">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="5">
+      <span></span> &nbsp;
+      <input type="radio" class="dmg" name="attr_dmg" value="6">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="7">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="8">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="9">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="10">
+      <span></span> <br>
+      <input type="radio" class="dmg" name="attr_dmg" value="11">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="12">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="13">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="14">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="15">
+      <span></span> &nbsp;
+      <input type="radio" class="dmg" name="attr_dmg" value="16">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="17">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="18">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="19">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="20">
+      <span></span> <br>
+      <input type="radio" class="dmg" name="attr_dmg" value="21">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="22">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="23">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="24">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="25">
+      <span></span> &nbsp;
+      <input type="radio" class="dmg" name="attr_dmg" value="26">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="27">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="28">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="29">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="30">
+      <span></span> <br>
+      <input type="radio" class="dmg" name="attr_dmg" value="31">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="32">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="33">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="34">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="35">
+      <span></span> &nbsp;
+      <input type="radio" class="dmg" name="attr_dmg" value="36">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="37">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="38">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="39">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="40">
+      <span></span> <br>
+      <input type="radio" class="dmg" name="attr_dmg" value="41">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="42">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="43">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="44">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="45">
+      <span></span> &nbsp;
+      <input type="radio" class="dmg" name="attr_dmg" value="46">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="47">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="48">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="49">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="50">
+      <span></span>
+		<input type="radio" class="dmg" name="attr_dmg" value="51">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="52">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="53">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="54">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="55">
+      <span></span> &nbsp;
+      <input type="radio" class="dmg" name="attr_dmg" value="56">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="57">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="58">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="59">
+      <span></span>
+      <input type="radio" class="dmg" name="attr_dmg" value="60">
+      <span></span><br>
+      <input type="number" name="attr_startinghits" readonly>
+      -
+      <input type="number" name="attr_dmg" readonly>
+      =
+      <input type="number" name="attr_remaininghits" value="@{startinghits}-@{dmg}" disabled="true" readonly>
+    </div>
+	<div class="sectionbox widthpercent20 borderred">
+      <h3>Luck Spent</h3>
+      <input type="radio" class="luck" name="attr_luckspent" value="0" checked="checked">
+      <span></span>None <br>
+      <input type="radio" class="luck" name="attr_luckspent" value="1">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="2">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="3">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="4">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="5">
+      <span></span> <br>
+      <input type="radio" class="luck" name="attr_luckspent" value="6">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="7">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="8">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="9">
+      <span></span>
+      <input type="radio" class="luck" name="attr_luckspent" value="10">
+      <span></span> <br>
+      <input type="number" name="attr_luck" readonly>
+      -
+      <input type="number" name="attr_luckspent" readonly>
+      =
+      <input type="number" name="attr_remainingluck" value="@{luck}-@{luckspent}" disabled="true" readonly>
+    </div>
+    <div class="sectionbox widthpercent50 borderred">
+		<h3>Armor</h3>
+      Armor Type
+      <input type="text" name="attr_armortype" value="Armor Type">
+      <br>
+      Head Armor
+      <input type="number" name="attr_headarmor" value="0">
+      Body Armor
+      <input type="number" name="attr_bodyarmor" value="0">
+    </div>
+       <div class="sectionbox widthpercent25 borderred">
+      <h3>Death</h3>
+      <button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Death Save}} {{roll=[[?{Roll Number?|1} - 1 + 1d10]]}}" name="roll_deathsave">Death Save</button>
+    </div>
+    <div class="sectionbox widthpercent25 borderred">
+      <h3>Initiative</h3>
+      <button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Initiative}} {{roll=[[@{ref} + 1d10]]}}" name="roll_deathsave">Initiative</button>
+    </div>
+    <!-- <div class="sectionbox widthpercent100 borderred">
+      <h3>Attacks</h3>
+      	<div class="sectionbox borderblue widthpercent25">
+        <h4>Brawling</h4>
+        <button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Brawling}} {{roll=[[@{dex} + @{brawlingroll} + @{finalmodifier} + 1d10]]}}" name="roll_brawling">Brawling</button>
+      </div>
+      <div class="sectionbox borderblue widthpercent25">
+        <h4>Suppressive Fire</h4>
+        <button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Suppressive Fire}} {{roll=[[@{ref} + @{autofireroll} + @{finalmodifier} + 1d10]]}}" name="roll_suppressivefire">Suppressive Fire</button>
+      </div>
+		
+	</div> -->
+<div class="sectionbox widthpercent100">	  
+<h3>Weapons</h3><div class="sectionbox borderred widthpercent50">
+        Name 1
+        <input type="text" name="attr_weapon1name" value="Weapon One">
+        Damage 1
+        <input type="number" name="attr_weapon1damage" value="0">
+        d6<br>
+        Skill 1
+        <select name="attr_weapon1skill">
+          <option value="{{@{ref}+@{archeryroll}}}">Archery</option>
+          <option value="{{@{ref}+@{handgunroll}}}">Handgun</option>
+          <option value="{{@{ref}+@{heavyweaponsroll}}}">Heavy Weapons</option>
+          <option value="{{@{ref}+@{meleeweaponroll}}}">Melee Weapon</option>
+          <option value="{{@{ref}+@{shoulderarmsroll}}}">Shoulder Arms</option>
+		  <option value="{{@{interfaceroll}}}">Uses Interface</option>
+        </select><br>
+        Standard Magazine/Type
+        <input type="text" name="attr_weapon1magazine">
+        Rate of Fire
+        <input type="number" name="attr_weapon1rof"><br>
+        Concealable?
+        <input type="radio" name="attr_weapon1concealed">Yes
+        <input type="radio" name="attr_weapon1concealed">No<br>
+        Alt. Fire Modes & Special Features
+        <input type="text" name="attr_weapon1firemodes"><br><br>
+		<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=@{weapon1name}}} {{roll=[[@{weapon1skill} + @{finalmodifier} + 1d10]]}}" name="roll_weapon1">Attack</button>
+        <button type="roll" value="@{charactername} does [[@{weapon1damage}d6]] damage with @{weapon1name}." name="roll_weapon1damage">Damage</button>
+	  </div>
+	  <div class="sectionbox borderred widthpercent50">
+        Name 2
+        <input type="text" name="attr_weapon2name" value="Weapon Two">
+        Damage 2
+        <input type="number" name="attr_weapon2damage" value="0">
+        d6<br>
+        Skill 2
+        <select name="attr_weapon2skill">
+          <option value="{{@{ref}+@{archeryroll}}}">Archery</option>
+          <option value="{{@{ref}+@{handgunroll}}}">Handgun</option>
+          <option value="{{@{ref}+@{heavyweaponsroll}}}">Heavy Weapons</option>
+          <option value="{{@{ref}+@{meleeweaponroll}}}">Melee Weapon</option>
+          <option value="{{@{ref}+@{shoulderarmsroll}}}">Shoulder Arms</option>
+		  <option value="{{@{interfaceroll}}}">Uses Interface</option>
+        </select><br>
+        Standard Magazine/Type
+        <input type="text" name="attr_weapon2magazine">
+        Rate of Fire
+        <input type="number" name="attr_weapon2rof"><br>
+        Concealable?
+        <input type="radio" name="attr_weapon2concealed">Yes
+        <input type="radio" name="attr_weapon2concealed">No<br>
+        Alt. Fire Modes & Special Features
+        <input type="text" name="attr_weapon2firemodes"><br><br>
+		<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=@{weapon2name}}} {{roll=[[@{weapon2skill} + @{finalmodifier} + 1d10]]}}" name="roll_weapon1">Attack</button>
+        <button type="roll" value="@{charactername} does [[@{weapon2damage}d6]] damage with @{weapon2name}." name="roll_weapon2damage">Damage</button>
+	  </div>
+	  <div class="sectionbox borderred widthpercent50">
+        Name 3
+        <input type="text" name="attr_weapon3name" value="Weapon Three">
+        Damage 3
+        <input type="number" name="attr_weapon3damage" value="0">
+        d6<br>
+        Skill 3
+        <select name="attr_weapon3skill">
+          <option value="{{@{ref}+@{archeryroll}}}">Archery</option>
+          <option value="{{@{ref}+@{handgunroll}}}">Handgun</option>
+          <option value="{{@{ref}+@{heavyweaponsroll}}}">Heavy Weapons</option>
+          <option value="{{@{ref}+@{meleeweaponroll}}}">Melee Weapon</option>
+          <option value="{{@{ref}+@{shoulderarmsroll}}}">Shoulder Arms</option>
+		  <option value="{{@{interfaceroll}}}">Uses Interface</option>
+        </select><br>
+        Standard Magazine/Type
+        <input type="text" name="attr_weapon3magazine">
+        Rate of Fire
+        <input type="number" name="attr_weapon3rof"><br>
+        Concealable?
+        <input type="radio" name="attr_weapon3concealed">Yes
+        <input type="radio" name="attr_weapon3concealed">No<br>
+        Alt. Fire Modes & Special Features
+        <input type="text" name="attr_weapon3firemodes"><br><br>
+		<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=@{weapon3name}}} {{roll=[[@{weapon3skill} + @{finalmodifier} + 1d10]]}}" name="roll_weapon3">Attack</button>
+        <button type="roll" value="@{charactername} does [[@{weapon3damage}d6]] damage with @{weapon3name}." name="roll_weapon3damage">Damage</button>
+	  </div>
+	  <div class="sectionbox borderred widthpercent50">
+        Name 4
+        <input type="text" name="attr_weapon4name" value="Weapon Four">
+        Damage 4
+        <input type="number" name="attr_weapon4damage" value="0">
+        d6<br>
+        Skill 4
+        <select name="attr_weapon4skill">
+          <option value="{{@{ref}+@{archeryroll}}}">Archery</option>
+          <option value="{{@{ref}+@{handgunroll}}}">Handgun</option>
+          <option value="{{@{ref}+@{heavyweaponsroll}}}">Heavy Weapons</option>
+          <option value="{{@{ref}+@{meleeweaponroll}}}">Melee Weapon</option>
+          <option value="{{@{ref}+@{shoulderarmsroll}}}">Shoulder Arms</option>
+		  <option value="{{@{interfaceroll}}}">Uses Interface</option>
+        </select><br>
+        Standard Magazine/Type
+        <input type="text" name="attr_weapon4magazine">
+        Rate of Fire
+        <input type="number" name="attr_weapon4rof"><br>
+        Concealable?
+        <input type="radio" name="attr_weapon4concealed">Yes
+        <input type="radio" name="attr_weapon4concealed">No<br>
+        Alt. Fire Modes & Special Features
+        <input type="text" name="attr_weapon4firemodes"><br><br>
+		<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=@{weapon4name}}} {{roll=[[@{weapon4skill} + @{finalmodifier} + 1d10]]}}" name="roll_weapon4">Attack</button>
+        <button type="roll" value="@{charactername} does [[@{weapon4damage}d6]] damage with @{weapon4name}." name="roll_weapon4damage">Damage</button>
+	  </div>
+	  <div class="sectionbox borderred widthpercent50">
+        Name 5
+        <input type="text" name="attr_weapon7name" value="Weapon Five">
+        Damage 5
+        <input type="number" name="attr_weapon7damage" value="0">
+        d6<br>
+        Skill 5
+        <select name="attr_weapon7skill">
+          <option value="{{@{ref}+@{archeryroll}}}">Archery</option>
+          <option value="{{@{ref}+@{handgunroll}}}">Handgun</option>
+          <option value="{{@{ref}+@{heavyweaponsroll}}}">Heavy Weapons</option>
+          <option value="{{@{ref}+@{meleeweaponroll}}}">Melee Weapon</option>
+          <option value="{{@{ref}+@{shoulderarmsroll}}}">Shoulder Arms</option>
+		  <option value="{{@{interfaceroll}}}">Uses Interface</option>
+        </select><br>
+        Standard Magazine/Type
+        <input type="text" name="attr_weapon7magazine">
+        Rate of Fire
+        <input type="number" name="attr_weapon7rof"><br>
+        Concealable?
+        <input type="radio" name="attr_weapon7concealed">Yes
+        <input type="radio" name="attr_weapon7concealed">No<br>
+        Alt. Fire Modes & Special Features
+        <input type="text" name="attr_weapon7firemodes"><br><br>
+		<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=@{weapon7name}}} {{roll=[[@{weapon7skill} + @{finalmodifier} + 1d10]]}}" name="roll_weapon7">Attack</button>
+        <button type="roll" value="@{charactername} does [[@{weapon7damage}d6]] damage with @{weapon7name}." name="roll_weapon7damage">Damage</button>
+	  </div>
+	  <div class="sectionbox borderred widthpercent50">
+        Name 6
+        <input type="text" name="attr_weapon6name" value="Weapon Six">
+        Damage 6
+        <input type="number" name="attr_weapon6damage" value="0">
+        d6<br>
+        Skill 6
+        <select name="attr_weapon6skill">
+          <option value="{{@{ref}+@{archeryroll}}}">Archery</option>
+          <option value="{{@{ref}+@{handgunroll}}}">Handgun</option>
+          <option value="{{@{ref}+@{heavyweaponsroll}}}">Heavy Weapons</option>
+          <option value="{{@{ref}+@{meleeweaponroll}}}">Melee Weapon</option>
+          <option value="{{@{ref}+@{shoulderarmsroll}}}">Shoulder Arms</option>
+		  <option value="{{@{interfaceroll}}}">Uses Interface</option>
+        </select><br>
+        Standard Magazine/Type
+        <input type="text" name="attr_weapon6magazine">
+        Rate of Fire
+        <input type="number" name="attr_weapon6rof"><br>
+        Concealable?
+        <input type="radio" name="attr_weapon6concealed">Yes
+        <input type="radio" name="attr_weapon6concealed">No<br>
+        Alt. Fire Modes & Special Features
+        <input type="text" name="attr_weapon6firemodes"><br><br>
+		<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=@{weapon6name}}} {{roll=[[@{weapon6skill} + @{finalmodifier} + 1d10]]}}" name="roll_weapon6">Attack</button>
+        <button type="roll" value="@{charactername} does [[@{weapon6damage}d6]] damage with @{weapon6name}." name="roll_weapon6damage">Damage</button>
+	</div></div>
+	<div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-netrunner-checkbox hidden-checkbox" name="attr_shownetrunner">
+		<div class="role-netrunner">
+			<h3>Netrunner Actions</h3>
+
+			<div class="sectionbox widthpercent100 borderblue">
+			<h4>Program Modifiers</h4>
+			<div class="sectionbox widthpercent33">
+			Program Attack: <select name="attr_netrunnerprogramattack">
+			  <option value="0" SELECTED>Default - +0</option>
+			  <option value="1">Banhammer - +1</option>
+				<option value="1">Sword - +1</option>
+				<option value="1">Vrizzbolt - +1</option>
+				<option value="0">Deckkrash - 0</option>
+				<option value="0">Poison Flatline - 0</option>
+				<option value="2">Hellbolt - +2</option>
+				<option value="0">Nervescrub - 0</option>
+				<option value="2">Superglue - +2</option>
+			</select> <br>
+				</div>
+				<div class="sectionbox widthpercent33">
+        Netrunner Final Modifier
+        <div class="skillvalue">
+            <input type="number" name="attr_netrunnerfinalmodifier" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_netrunnerfinalmodifierroll">
+			  <span name="attr_netrunnerfinalmodifierflag"></span> </div></div>
+					<div class="sectionbox widthpercent33"><button type="action" name="act_clearmods2">Clear</button><br><br></div></div>
+					
+					      			
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Scanner}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_scanner">Scanner</button>
+
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Back Door}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_backdoor">Back Door</button>
+			
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Pathfinder}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_pathfinder">Pathfinder</button>
+			
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Slide}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_slide">Slide</button>			
+
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Zap}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_zap">Zap</button>			
+			
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Eye-Dee}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_eyedee">Eye-Dee</button>			
+			
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Control}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_control">Control</button>			
+
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Virus}} {{roll=[[@{interface} + @{finalmodifier} + @{{netrunnerfinalmodifier}} + 1d10]]}}" name="roll_virus">Virus</button>	
+			
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Cloak}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_cloak">Cloak</button>	
+
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Initial Black Ice Encounter}} {{roll=[[@{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_initialblackice">Initial Black ICE Encounter</button>	
+			
+			<button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Program Attack}} {{roll=[[@{netrunnerprogramattack} + @{interface} + @{finalmodifier} + @{netrunnerfinalmodifier} + 1d10]]}}" name="roll_programattack">Program Attack</button>	
+			
+<div class="sectionbox widthpercent100">
+		  <div class="sectionbox widthpercent33">
+	  <button type="roll" value="&{template:jsk2}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Roll 1d6}} {{roll=[[1d6]]}}" name="roll_1d6">Roll 1d6</button></div>
+	  <div class="sectionbox widthpercent33">
+	  <button type="roll" value="&{template:jsk2}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Roll 2d6}} {{roll=[[2d6]]}}" name="roll_2d6">Roll 2d6</button></div>
+		   
+		  <div class="sectionbox widthpercent33">
+	  <button type="roll" value="&{template:jsk2}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Roll 3d6}} {{roll=[[3d6]]}}" name="roll_3d6">Roll 3d6</button></div></div>
+		</div>
+	  
+	  
+	  </div>
+	  <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-rocker-checkbox hidden-checkbox" name="attr_showrocker">
+		<div class="role-rocker">
+			<h3>Rocker</h3>
+			<div class="sectionbox widthpercent100">Rockerboy/girl should use the special ability section in the skills list.</div>
+		  </div></div>
+	  <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-nomad-checkbox hidden-checkbox" name="attr_shownomad">
+		<div class="role-nomad">
+			<h3>Nomad</h3>
+			<div class="sectionbox widthpercent100">Nomad should use the special ability section in the skills list.</div>
+		  </div></div>
+	  <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-lawman-checkbox hidden-checkbox" name="attr_showlawman">
+		<div class="role-lawman">
+			<h3>Lawman</h3>
+			<div class="sectionbox widthpercent100">Lawman should use the special ability section in the skills list.</div>
+		  </div></div>
+	  <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-media-checkbox hidden-checkbox" name="attr_showmedia">
+		<div class="role-media">
+			<h3>Media</h3>
+			<div class="sectionbox widthpercent100">Media should use the special ability section in the skills list.</div>
+		  </div></div>
+	   <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-exec-checkbox hidden-checkbox" name="attr_showexec">
+	  <div class="role-exec">
+			<h3>Exec</h3>
+			<div class="sectionbox widthpercent100">Exec should use the special ability section in the skills list.</div>
+		  </div></div>
+	<div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-fixer-checkbox hidden-checkbox" name="attr_showfixer">
+	  <div class="role-fixer">
+			<h3>Fixer</h3>
+			<div class="sectionbox widthpercent100">Fixer should use the special ability section in the skills list.</div>
+		  </div></div>
+	  <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-tech-checkbox hidden-checkbox" name="attr_showtech">
+		<div class="role-tech">
+			<h3>Tech</h3>
+        <div class="sectionbox widthpercent85">Field Expertise <input type="number" value="0" name="attr_fe"></div>
+        <div class="sectionbox widthpercent85">Upgrade Expertise <input type="number" value="0" name="attr_ue"></div>
+          <div class="sectionbox widthpercent85">Fabrication Expertise <input type="number" value="0" name="attr_fe"></div>
+			<div class="sectionbox widthpercent85">Invention Expertise <input type ="number" value="0" name="attr_ie"></div>
+		  </div></div>
+	   <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-solo-checkbox hidden-checkbox" name="attr_showsolo">
+		  <div class="role-solo">
+			<h3>Solo Actions</h3>
+					<div class="sectionbox widthpercent100">
+						<div class="sectionbox widthpercent85">Threat Detection <input type="number" value="0" name="attr_td"></div>
+        				<div class="sectionbox widthpercent85">Initative Reaction <input type="number" value="0" name="attr_ir"></div>
+          				<div class="sectionbox widthpercent85">Precision Attack <input type="number" value="0" name="attr_pa"></div>
+						<div class="sectionbox widthpercent85">Spot Weakness <input type ="number" value="0" name="attr_sw"></div>
+			  			<div class="sectionbox widthpercent85">Damage Deflection <input type ="number" value="0" name="attr_dd"></div>
+			  			<div class="sectionbox widthpercent85">Fumble Recovery <input type ="number" value="0" name="attr_fr"></div></div>
+
+		  </div>
+	  </div>
+	  <div class="sectionbox widthpercent100">
+	  <input type="checkbox" class="role-medtech-checkbox hidden-checkbox" name="attr_showmedtech">
+		  <div class="role-medtech">
+			<h3>Medtech Actions</h3>
+					<div class="sectionbox widthpercent85">Surgery <input type="number" value="0" name="attr_mtsurgery"></div>
+        <div class="sectionbox widthpercent85">Medical Tech (Pharmaceuticals) <input type="number" value="0" name="attr_mtpharma"></div>
+          <div class="sectionbox widthpercent85">Medical Tech (Cryosystem Operation) <input type="number" value="0" name="attr_mt_cryo"></div>
+		  </div>
+	  </div></div>
+  <div class="tab-content tab4">
+    <div class="sectionbox borderred widthpercent100">
+      <h3>Cyberware</h3>
+      <div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware1name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware1desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware2name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware2desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware3name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware3desc"></textarea></div>
+  </div>
+			  </div></div></div>
+    <div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware4name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware4desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware5name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware5desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware6name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware6desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware7name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware7desc"></textarea></div>
+  </div>
+			  </div></div></div>
+    <div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware8name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware8desc"></textarea></div>
+  </div>
+			  </div></div></div>
+	  <div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware9name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware9desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware10name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware10desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware11name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware11desc"></textarea></div>
+  </div>
+			  </div></div></div>
+    <div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware12name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware12desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware13name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware13desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware14name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware14desc"></textarea></div>
+  </div>
+			  </div></div></div>
+		<div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware15name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware15desc"></textarea></div>
+  </div>
+			  </div></div></div>
+    <div class="sectionbox widthpercent25"><input type="text" name="attr_cyberware16name">
+          <div class="sheet-columns">
+	     <div><div class="sectionbox widthpercent50"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+      <span></span>
+      <div class="sheet-body"><textarea name="attr_cyberware16desc"></textarea></div>
+  </div>
+			  </div></div></div></div>
+	  <div class="sectionbox borderred widthpercent100">
+		  <h3>Humanity Gains/Losses</h3>
+		     <div class="sheet-columns">
+				 
+	     <div class="sectionbox widthpercent100"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+			 <span></span><br>
+      <div class="sheet-body">
+			  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_ledger1name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_ledger1number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger2name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger2number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger3name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger3number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_ledger4name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_ledger4number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger5name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger5number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger6name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger6number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_ledger7name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_ledger7number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger8name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger8number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger9name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger9number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_ledger10name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_ledger10number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger11name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger11number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger12name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger12number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_ledger13name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_ledger13number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger14name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger14number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger15name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger15number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_ledger16name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_ledger16number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger17name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger17number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger18name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger18number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_ledger19name"></div>
+				  <div class="sectionbox widthpercent15"><input type="number" name="attr_ledger19number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_ledger20name"></div>
+				<div class="sectionbox widthpercent15"><input type="number" name="attr_ledger20number"></div></div>
+	  		</div>
+			 </div></div>
+		  </div></div>
+				 <div class="tab-content tab5">
+					 <div class="sectionbox borderred widthpercent100">
+		  <h3>Money Ledger</h3>
+		     <div class="sheet-columns">
+				 <div class="sectionbox widthpercent33">Available Cash <input type="text" name="attr_cash"></div>
+	     <div class="sectionbox widthpercent100"><input type="checkbox" class="sheet-toggle-show" value="1"/> Expand
+			 <span></span><br>
+      <div class="sheet-body">
+			  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_cash1name"></div>
+				  <div class="sectionbox widthpercent15"><input type="text" name="attr_cash1number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash2name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash2number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash3name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash3number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_cash4name"></div>
+				  <div class="sectionbox widthpercent15"><input type="text" name="attr_cash4number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash5name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash5number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash6name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash6number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_cash7name"></div>
+				  <div class="sectionbox widthpercent15"><input type="text" name="attr_cash7number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash8name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash8number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash9name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash9number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_cash10name"></div>
+				  <div class="sectionbox widthpercent15"><input type="text" name="attr_cash10number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash11name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash11number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash12name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash12number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_cash13name"></div>
+				  <div class="sectionbox widthpercent15"><input type="text" name="attr_cash13number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash14name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash14number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash15name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash15number"></div></div>
+		  <div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_cash16name"></div>
+				  <div class="sectionbox widthpercent15"><input type="text" name="attr_cash16number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash17name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash17number"></div></div>
+	  		<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash18name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash18number"></div></div>
+			<div class="sectionbox widthpercent100">
+				  <div class="sectionbox widthpercent85"><input type="text" name="attr_cash19name"></div>
+				  <div class="sectionbox widthpercent15"><input type="text" name="attr_cash19number"></div></div>
+			<div class="sectionbox widthpercent100">
+				<div class="sectionbox widthpercent85"><input type="text" name="attr_cash20name"></div>
+				<div class="sectionbox widthpercent15"><input type="text" name="attr_cash20number"></div></div>
+	  	
+			 </div></div>
+						 </div></div>
+    <div class="sectionbox">
+		<div class="sectionbox borderred widthpercent100">
+            <h3>Gear</h3>
+      <div class="sectionbox widthpercent33"> Gear 1
+        <textarea rows="4" cols="20" name="attr_gear1"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 2
+        <textarea rows="4" cols="20" name="attr_gear2"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 3
+        <textarea rows="4" cols="20" name="attr_gear3"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 4
+        <textarea rows="4" cols="20" name="attr_gear4"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 5
+        <textarea rows="4" cols="20" name="attr_gear5"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 6
+        <textarea rows="4" cols="20" name="attr_gear6"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 7
+        <textarea rows="4" cols="20" name="attr_gear7"></textarea>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 8
+        <textarea rows="4" cols="20" name="attr_gear8"></textarea>
+      </div>
+      <div class="sectionbox widthpercent33"> Gear 9
+        <textarea rows="4" cols="20" name="attr_gear9"></textarea>
+      </div>
+    </div>
+					 </div></div>
+  <div class="tab-content tab6">
+    <div class="sectionbox">
+      <h3>Lifepath</h3>
+      <div class="sectionbox widthpercent33"> Background
+        <textarea rows="4" cols="20" name="attr_lifepathbackground"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Motivation
+        <textarea rows="4" cols="20" name="attr_lifepathmotivation"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Goals
+        <textarea rows="4" cols="20" name="attr_lifepathgoals"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Friends
+        <textarea rows="4" cols="20" name="attr_lifepathfriends"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Enemies
+        <textarea rows="4" cols="20" name="attr_lifepathenemies"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Romance
+        <textarea rows="4" cols="20" name="attr_lifepathromance"></textarea>
+        <br>
+      </div>
+      <div class="sectionbox widthpercent33"> Personality
+        <textarea rows="4" cols="20" name="attr_lifepathpersonality"></textarea>
+      </div>
+		<div class="sectionbox widthpercent33"> Contacts
+		<textarea rows="4" cols="20" name="attr_lifepathcontacts"></textarea></div>
+    </div>
+	  <div class="sectionbox widthpercent100">
+	  <h3>Notes</h3>
+		  
+	  <textarea rows="4" cols="20" name="attr_lifepathnotes"></textarea></div>
+  </div>
+  <div class="tab-content tab7"> This tab not yet styled, but all functions work. <br>
+    <hr>
+    Color for Roll Template
+    <select name="attr_templatecolor">
+      <option value="charactername-black" SELECTED>Black</option>
+      <option value="charactername-red">Red</option>
+      <option value="charactername-blue">Blue</option>
+      <option value="charactername-green">Green</option>
+      <option value="charactername-yellow">Yellow</option>
+      <option value="charactername-purple">Purple</option>
+      <option value="charactername-magenta">Magenta</option>
+      <option value="charactername-bronze">Bronze</option>
+    </select>
+    <br>
+    <hr>
+    <button type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Skillname}} {{roll=[[@{dex} + @{brawlingroll} + @{finalmodifier} + 1d10]]}} {{footer=This is how footer text will look, if there is any such text on the action being taken.}}">Test Roll</button>
+    <br>
+    <hr>
+    <!--<input type="checkbox" id="gmbutton" class="sheet-gm-checkbox" name="attr_gmhidecheckbox">Click here to access GM tools. This will hide the player section
+	<hr>
+	<hr>-->
+	Role sections
+	<br>
+	  (Click the checkbox below to activate special role sections.)
+	<br>
+	<input type="checkbox" class="role-netrunner-checkbox" name="attr_shownetrunner">  Netrunner<br>
+	  <input type="checkbox" class="role-tech-checkbox" name="attr_showtech">  Tech<br>
+	  <input type="checkbox" class="role-rocker-checkbox" name="attr_showrocker">  Rocker<br>
+	  <input type="checkbox" class="role-solo-checkbox" name="attr_showsolo">  Solo<br>
+	  	  <input type="checkbox" class="role-medtech-checkbox" name="attr_showmedtech">  Med Tech<br>
+	  <input type="checkbox" class="role-media-checkbox" name="attr_showmedia">  Media<br>
+	  <input type="checkbox" class="role-lawman-checkbox" name="attr_showlawman">  Lawman<br>
+	  <input type="checkbox" class="role-exec-checkbox" name="attr_showexec">  Exec<br>
+	  <input type="checkbox" class="role-fixer-checkbox" name="attr_showfixer">  Fixer<br>
+	  <input type="checkbox" class="role-nomad-checkbox" name="attr_shownomad">  Nomad<br>
+	  <br><br><br>
+	  <div>Credits:<br>
+		  This sheet was initially based on the boilerplate system by https://gitlab.com/asacolips-projects/foundry-mods/foundryvtt-system-tutorial@asacolips#1867<br><br>
+		  The original html, css, js, and json files turning this into a Cyberpunk RED Jumpstart Kit system were all created by @gerdofal#0763 https://github.com/Gerdofal/foundryvtt-cyberpunkred<br><br>
+	  		The original sheet by Gerdofal was edited by High Shelf Gaming as a preliminary character sheet for use at launch of Cyberpunk Red.<br> <b>High Shelf Gaming will not continue maintenance of this character sheet.</b><br><br>
+		  Art for the character sheet was created by https://twitter.com/greg1756<br><br>
+	  High Shelf Gaming started as a podcast and has evolved into a community of gamers. Find out more about us at:<br>
+	 	Discord - https://discord.gg/KupFVcw<br>
+		  Twitter - https://twitter.com/highshelfgaming<br>
+		  Twitch - https://twitch.tv/highshelfgaming<br>
+	  Website - https://www.highshelfgaming.com</div>
+
+	  
+  </div>
+<div class="tab-content tab8"><div class="sectionbox widthpercent100">
+	Modifiers: <input type="number" name="attr_finalmodifier" readonly></div>
+	<div class="sectionbox borderred widthpercent100">
+           <h3>Skills</h3>
+      <div class="sectionbox widthpercent50">
+		 <h4>Awareness Skills</h4>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Conceal Reveal/Object}} {{roll=[[@{int} + @{concealrevealobjectroll} + @{finalmodifier} + 1d10]]}}">Conceal/Reveal Object</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_concealrevealobject" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_concealrevealobjectroll">
+            <span name="attr_concealrevealobjectflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Concentration}} {{roll=[[@{will} + @{concentrationroll} + @{finalmodifier} + 1d10]]}}">Concentration</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_concentration" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_concentrationroll">
+            <span name="attr_concentrationflag"></span> </div>
+        </div>
+		<!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Lip Reading}} {{roll=[[@{int} + @{lipreadingroll} + @{finalmodifier} + 1d10]]}}">Lip Reading</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_lipreading" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_lipreadingroll">
+            <span name="attr_lipreadingflag"></span> </div>
+        </div>  
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+           <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Perception}} {{roll=[[@{int} + @{perceptionroll} + @{finalmodifier} + 1d10]]}}">Perception</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_perception" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_perceptionroll">
+            <span name="attr_perceptionflag"></span> </div>
+        </div>
+		  
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Tracking}} {{roll=[[@{int} + @{trackingroll} + @{finalmodifier} + 1d10]]}}">Tracking</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_tracking" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_trackingroll">
+            <span name="attr_trackingflag"></span> </div>
+        </div>
+		<h4>Body Skills</h4>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Athletics}} {{roll=[[@{dex} + @{athleticsroll} + @{finalmodifier} + 1d10]]}}">Athletics</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_athletics" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_athleticsroll">
+            <span name="attr_athleticsflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Contortionist}} {{roll=[[@{dex} + @{contortionistroll} + @{finalmodifier} + 1d10]]}}">Contortionist</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_contortionist" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_contortionistroll">
+            <span name="attr_contortionistflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Dance}} {{roll=[[@{dex} + @{danceroll} + @{finalmodifier} + 1d10]]}}">Dance</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_dance" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_danceroll">
+            <span name="attr_danceflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Endurance}} {{roll=[[@{will} + @{enduranceroll} + @{finalmodifier} + 1d10]]}}">Endurance</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_endurance" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_enduranceroll">
+            <span name="attr_enduranceflag"></span> </div>
+        </div>
+		   <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Resist Torture/Drugs}} {{roll=[[@{will} + @{resisttorturedrugsroll} + @{finalmodifier} + 1d10]]}}">Resist Torture/Drugs</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_resisttorturedrugs" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_resisttorturedrugsroll">
+            <span name="attr_resisttorturedrugsflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Stealth}} {{roll=[[@{dex} + @{stealthroll} + @{finalmodifier} + 1d10]]}}">Stealth</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_stealth" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_stealthroll">
+            <span name="attr_stealthflag"></span> </div>
+        </div>   
+        <h4>Control Skills</h4>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Drive Land Vehicle}} {{roll=[[@{ref} + @{drivelandvehicleroll} + @{finalmodifier} + 1d10]]}}">Drive Land  Vehicle</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_drivelandvehicle" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_drivelandvehicleroll">
+            <span name="attr_drivelandvehicleflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Pilot Air Vehicle}} {{roll=[[@{ref} + @{pilotairvehicleroll} + @{finalmodifier} + 1d10]]}}">Pilot Air Vehicle</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_pilotairvehicle" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_pilotairvehicleroll">
+            <span name="attr_pilotairvehicleflag"></span> </div>
+        </div> 
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Pilot Sea Vehicle}} {{roll=[[@{ref} + @{pilotseavehicleroll} + @{finalmodifier} + 1d10]]}}">Pilot Sea Vehicle</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_pilotseavehicle" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_pilotseavehicleroll">
+            <span name="attr_pilotseavehicleflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Riding}} {{roll=[[@{ref} + @{ridingroll} + @{finalmodifier} + 1d10]]}}">Riding</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_riding" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_ridingroll">
+            <span name="attr_ridingflag"></span> </div>
+        </div>  
+		 
+         <h4>Education Skills</h4>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Accounting}} {{roll=[[@{int} + @{accounting} + @{finalmodifier} + 1d10]]}}">Accounting</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_accounting" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_accountingroll">
+            <span name="attr_accountingflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Animal Handling}} {{roll=[[@{int} + @{animalhandling} + @{finalmodifier} + 1d10]]}}">Animal Handling</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_animalhandling" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_animalhandlingroll">
+            <span name="attr_animalhandlingflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Bureaucracy}} {{roll=[[@{int} + @{bureaucracy} + @{finalmodifier} + 1d10]]}}">Bureaucracy</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_bureaucracy" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_bureaucracyroll">
+            <span name="attr_bureaucracyflag"></span> </div>
+        </div>
+		  
+          
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Business}} {{roll=[[@{int} + @{businessroll} + @{finalmodifier} + 1d10]]}}">Business</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_business" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_businessroll">
+            <span name="attr_businessflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Composition}} {{roll=[[@{int} + @{compositionroll} + @{finalmodifier} + 1d10]]}}">Composition</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_composition" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_compositionroll">
+            <span name="attr_compositionflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Criminology}} {{roll=[[@{int} + @{criminologyroll} + @{finalmodifier} + 1d10]]}}">Criminology</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_criminology" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_criminologyroll">
+            <span name="attr_criminologyflag"></span> </div>
+        </div>
+		  
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Cryptography}} {{roll=[[@{int} + @{cryptographyroll} + @{finalmodifier} + 1d10]]}}">Cryptography</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_cryptography" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_cryptographyroll">
+            <span name="attr_cryptographyflag"></span> </div>
+        </div>
+
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Deduction}} {{roll=[[@{int} + @{deductionroll} + @{finalmodifier} + 1d10]]}}">Deduction</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_deduction" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_deductionroll">
+            <span name="attr_deductionflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Education}} {{roll=[[@{int} + @{education2} + @{finalmodifier} + 1d10]]}}">Education</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_education2" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_education2roll">
+            <span name="attr_education2flag"></span> </div>
+        </div>
+        
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Gamble}} {{roll=[[@{int} + @{gambleroll} + @{finalmodifier} + 1d10]]}}">Gamble</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_gamble" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_gambleroll">
+            <span name="attr_gambleflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Language}} {{roll=[[@{int} + @{languageroll} + @{finalmodifier} + 1d10]]}}">Language</button><input type="text" value="Type" name="attr_languageinput">
+          <div class="skillvalue">
+            <input type="number" name="attr_language" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_languageroll">
+            <span name="attr_languageflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Language 2}} {{roll=[[@{int} + @{language2roll} + @{finalmodifier} + 1d10]]}}">Language 2</button><input type="text" value="Type" name="attr_language2input">
+          <div class="skillvalue">
+            <input type="number" name="attr_language2" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_language2roll">
+            <span name="attr_language2flag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Language 3}} {{roll=[[@{int} + @{language3roll} + @{finalmodifier} + 1d10]]}}">Language 3</button><input type="text" value="Type" name="attr_language3input">
+          <div class="skillvalue">
+            <input type="number" name="attr_language3" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_language3roll">
+            <span name="attr_language3flag"></span> </div>
+        </div>
+                       
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Library Search}} {{roll=[[@{int} + @{librarysearchroll} + @{finalmodifier} + 1d10]]}}">Library Search</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_librarysearch" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_librarysearchroll">
+            <span name="attr_librarysearchflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Local Expert}} {{roll=[[@{int} + @{localexpertroll} + @{finalmodifier} + 1d10]]}}">Local Expert</button><input type="text" value="Type" name="attr_localexpertinput">
+          <div class="skillvalue">
+            <input type="number" name="attr_localexpert" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_localexpertroll">
+            <span name="attr_localexpertflag"></span> </div>
+		  </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Local Expert 2}} {{roll=[[@{int} + @{localexpert2roll} + @{finalmodifier} + 1d10]]}}">Local Expert 2</button><input type="text" value="Type" name="attr_localexpert2input">
+          <div class="skillvalue">
+            <input type="number" name="attr_localexpert2" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_localexpert2roll">
+            <span name="attr_localexpert2flag"></span> </div>
+		  </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Local Expert 3}} {{roll=[[@{int} + @{localexpert3roll} + @{finalmodifier} + 1d10]]}}">Local Expert 3</button><input type="text" value="Type" name="attr_localexpert3input">
+          <div class="skillvalue">
+            <input type="number" name="attr_localexpert3" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_localexpert3roll">
+            <span name="attr_localexpert3flag"></span> </div>
+		  </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Science}} {{roll=[[@{int} + @{scienceroll} + @{finalmodifier} + 1d10]]}}">Science</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_science" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_scienceroll">
+            <span name="attr_scienceflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Tactics}} {{roll=[[@{int} + @{tacticsroll} + @{finalmodifier} + 1d10]]}}">Tactics</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_tactics" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_tacticsroll">
+            <span name="attr_tacticsflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Wilderness Survival}} {{roll=[[@{int} + @{wildernesssurvivalroll} + @{finalmodifier} + 1d10]]}}">Wilderness Survival</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_wildernesssurvival" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_wildernesssurvivalroll">
+            <span name="attr_wildernesssurvivalflag"></span> </div>
+        </div>
+        <h4>Fighting Skills</h4>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+			<button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Brawling}} {{roll=[[@{dex} + @{brawlingroll} + @{finalmodifier} + 1d10]]}}">Brawling</button>
+          
+          <div class="skillvalue">
+            <input type="number" name="attr_brawling" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_brawlingroll">
+            <span name="attr_brawlingflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+			<button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Evasion}} {{roll=[[@{dex} + @{evasionroll} + @{finalmodifier} + 1d10]]}}">Evasion</button>
+ 
+          <div class="skillvalue">
+            <input type="number" name="attr_evasion" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_evasionroll">
+            <span name="attr_evasionflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+			<button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Martial Arts }} {{roll=[[@{dex} + @{martialartsroll} + @{finalmodifier} + 1d10]]}}">Martial Arts </button><input type="text" value="Type" name="attr_martialartsinput">
+ 
+          <div class="skillvalue">
+            <input type="number" name="attr_martialarts" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_martialartsroll">
+            <span name="attr_martialartsflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Melee Weapon}} {{roll=[[@{dex} + @{meleeweaponroll} + @{finalmodifier} + 1d10]]}}">Melee Weapon</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_meleeweapon" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_meleeweaponroll">
+            <span name="attr_meleeweaponflag"></span> </div>
+        </div>
+		  </div>
+		     <!-- THIS IS THE SKILL COLUMN BREAK --> <div class="sectionbox widthpercent50"> <!-- BE AWARE OF SKILL COLUMN BREAK -->
+		<h4>Performance Skills</h4>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Acting}} {{roll=[[@{cool} + @{actingroll} + @{finalmodifier} + 1d10]]}}">Acting</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_acting" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_actingroll">
+            <span name="attr_actingflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Play Instrument}} {{roll=[[@{emp} + @{playinstrumentroll} + @{finalmodifier} + 1d10]]}}">Play Instrument</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_playinstrument" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_playinstrumentroll">
+            <span name="attr_playinstrumentflag"></span> </div>
+        </div>
+		  
+        <h4>Ranged Weapon Skills</h4>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+			<button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Archery}} {{roll=[[@{ref} + @{archeryroll} + @{finalmodifier} + 1d10]]}}">Archery</button>
+          
+          <div class="skillvalue">
+            <input type="number" name="attr_archery" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_archery">
+            <span name="attr_archeryflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Autofire}} {{roll=[[@{ref} + @{autofireroll} + @{finalmodifier} + 1d10]]}}">Autofire</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_autofire" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_autofire">
+            <span name="attr_autofireflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Handgun}} {{roll=[[@{ref} + @{handgunroll} + @{finalmodifier} + 1d10]]}}">Handgun</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_handgun" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_handgun">
+            <span name="attr_handgunflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Heavy Weapons}} {{roll=[[@{ref} + @{heavyweaponsroll} + @{finalmodifier} + 1d10]]}}">Heavy Weapons</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_heavyweapons" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_heavyweapons">
+            <span name="attr_heavyweaponsflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Shoulder Arms}} {{roll=[[@{ref} + @{shoulderarmsroll} + @{finalmodifier} + 1d10]]}}">Shoulder Arms</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_shoulderarms" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_shoulderarms">
+            <span name="attr_shoulderarmsflag"></span> </div>
+        </div>
+        
+                  
+        <h4>Social Skills</h4>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Bribery}} {{roll=[[@{cool} + @{briberyroll} + @{finalmodifier} + 1d10]]}}">Bribery</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_bribery" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_briberyroll">
+            <span name="attr_briberyflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Conversation}} {{roll=[[@{emp} + @{conversationroll} + @{finalmodifier} + 1d10]]}}">Conversation</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_conversation" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_conversationroll">
+            <span name="attr_conversationflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Human Perception}} {{roll=[[@{emp} + @{humanperceptionroll} + @{finalmodifier} + 1d10]]}}">Human Perception</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_humanperception" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_humanperceptionroll">
+            <span name="attr_humanperceptionflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Interrogation}} {{roll=[[@{cool} + @{interrogationroll} + @{finalmodifier} + 1d10]]}}">Interrogation</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_interrogation" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_interrogationroll">
+            <span name="attr_interrogationflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Persuasion}} {{roll=[[@{cool} + @{persuasionroll} + @{finalmodifier} + 1d10]]}}">Persuasion</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_persuasion" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_persuasionroll">
+            <span name="attr_persuasionflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Personal Grooming}} {{roll=[[@{cool} + @{personalgroomingroll} + @{finalmodifier} + 1d10]]}}">Personal Grooming</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_personalgrooming" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_personalgroomingroll">
+            <span name="attr_personalgroomingflag"></span> </div>
+        </div>
+                     
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Streetwise}} {{roll=[[@{cool} + @{streetwiseroll} + @{finalmodifier} + 1d10]]}}">Streetwise</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_streetwise" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_streetwiseroll">
+            <span name="attr_streetwiseflag"></span> </div>
+        </div>
+
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Trading}} {{roll=[[@{cool} + @{tradingroll} + @{finalmodifier} + 1d10]]}}">Trading</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_trading" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_tradingroll">
+            <span name="attr_tradingflag"></span> </div>
+        </div>
+		<!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Wardrobe & Style}} {{roll=[[@{cool} + @{wardrobestyleroll} + @{finalmodifier} + 1d10]]}}">Wardrobe & Style</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_wardrobestyle" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_wardrobestyleroll">
+            <span name="attr_wardrobestyleflag"></span> </div>
+        </div>
+		<h4>Special Skills</h4>
+		<!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Interface}} {{roll=[[@{interfaceroll} + @{finalmodifier} + 1d10]]}}">Interface</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_interface" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_interfaceroll">
+            <span name="attr_interfaceflag"></span> </div>
+        </div>
+		  <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Special Ability}} {{roll=[[@{specialabilityroll} + @{finalmodifier} + 1d10]]}}">Special Ability</button><input type="text" value="Type" name="attr_specialyabilitytext">
+          <div class="skillvalue">
+            <input type="number" name="attr_specialability" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_specialabilityroll">
+            <span name="attr_specialabilityflag"></span> </div>
+        </div>
+              
+        <h4>Technique Skills</h4>
+		<!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Air Vehicle Tech}} {{roll=[[@{tech} + @{airvehicletechroll} + @{finalmodifier} + 1d10]]}}">Air Vehicle Tech</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_airvehicletech" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_airvehicletechroll">
+            <span name="attr_airvehicletechflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Basic Tech}} {{roll=[[@{tech} + @{basictechroll} + @{finalmodifier} + 1d10]]}}">Basic Tech</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_basictech" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_basictechroll">
+            <span name="attr_basictechflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Cybertech}} {{roll=[[@{tech} + @{cybertechroll} + @{finalmodifier} + 1d10]]}}">Cybertech</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_cybertech" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_cybertechroll">
+            <span name="attr_cybertechflag"></span> </div>
+        </div>
+		<!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Demolitions}} {{roll=[[@{tech} + @{demolitionsroll} + @{finalmodifier} + 1d10]]}}">Demolitions</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_demolitions" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_demolitionsroll">
+            <span name="attr_demolitionsflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Electronic Security}} {{roll=[[@{tech} + @{electronicssecuritytechroll} + @{finalmodifier} + 1d10]]}}">Electronic Security</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_electronicssecuritytech" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_electronicssecuritytechroll">
+            <span name="attr_electronicssecuritytechflag"></span> </div>
+        </div>
+		<!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=First Aid}} {{roll=[[@{tech} + @{firstaidroll} + @{finalmodifier} + 1d10]]}}">First Aid</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_firstaid" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_firstaidroll">
+            <span name="attr_firstaidflag"></span> </div>
+        </div>  
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Forgery}} {{roll=[[@{tech} + @{forgeryroll} + @{finalmodifier} + 1d10]]}}">Forgery</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_forgery" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_forgeryroll">
+            <span name="attr_forgeryflag"></span> </div>
+        </div>     
+         
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Land Vehicle Tech}} {{roll=[[@{tech} + @{landvehicletechroll} + @{finalmodifier} + 1d10]]}}">Land Vehicle Tech</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_landvehicletech" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_landvehicletechroll">
+            <span name="attr_landvehicletechflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Paint/Draw/Sculpt}} {{roll=[[@{tech} + @{paintdrawsculptroll} + @{finalmodifier} + 1d10]]}}">Paint/Draw/Sculpt</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_paintdrawsculpt" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_paintdrawsculptroll">
+            <span name="attr_paintdrawsculptflag"></span> </div>
+        </div>
+
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Paramedic}} {{roll=[[@{tech} + @{paramedicroll} + @{finalmodifier} + 1d10]]}}">Paramedic</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_paramedic" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_paramedicroll">
+            <span name="attr_paramedicflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Photography/Film}} {{roll=[[@{tech} + @{photographyfilmroll} + @{finalmodifier} + 1d10]]}}">Photography/Film</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_photographyfilm" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_photographyfilmroll">
+            <span name="attr_photographyfilmflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Pick Lock}} {{roll=[[@{tech} + @{picklockroll} + @{finalmodifier} + 1d10]]}}">Pick Lock</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_picklock" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_picklockroll">
+            <span name="attr_picklockflag"></span> </div>
+        </div>
+        
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Pick Pocket}} {{roll=[[@{tech} + @{pickpocketroll} + @{finalmodifier} + 1d10]]}}">Pick Pocket</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_pickpocket" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_pickpocketroll">
+            <span name="attr_pickpocketflag"></span> </div>
+        </div>
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Sea Vehicle Tech}} {{roll=[[@{tech} + @{seavehicletechroll} + @{finalmodifier} + 1d10]]}}">Sea Vehicle Tech</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_seavehicletech" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_seavehicletechroll">
+            <span name="attr_seavehicletechflag"></span> </div>
+        </div>
+      
+        <!-- BEGIN SKILL ROW -->
+        <div class="sectionbox widthpercent100">
+          <button class="invisible-button" type="roll" value="&{template:jsk1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Weaponstech}} {{roll=[[@{tech} + @{weaponstechroll} + @{finalmodifier} + 1d10]]}}">Weaponstech</button>
+          <div class="skillvalue">
+            <input type="number" name="attr_weaponstech" value="0">
+          </div>
+          <div class="skillflag">
+            <input type="hidden" name="attr_weaponstechroll">
+            <span name="attr_weaponstechflag"></span> </div>
+        </div>
+        
+               
+      </div>
+    </div></div>
+<!--<div class="sheet-hidable-gmonlyview">
+  <h1>GM Only View</h1>
+  <div class="sectionbox borderred">
+    <h3>Raw Rolls</h3>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-20 + 1d10]]}} ">-20</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-19 + 1d10]]}} ">-19</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-18 + 1d10]]}} ">-18</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-17 + 1d10]]}} ">-17</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-16 + 1d10]]}} ">-16</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-15 + 1d10]]}} ">-15</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-14 + 1d10]]}} ">-14</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-13 + 1d10]]}} ">-13</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-12 + 1d10]]}} ">-12</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-11 + 1d10]]}} ">-11</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-10 + 1d10]]}} ">-10</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-9 + 1d10]]}} ">-9</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-8 + 1d10]]}} ">-8</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-7 + 1d10]]}} ">-7</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-6 + 1d10]]}} ">-6</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-5 + 1d10]]}} ">-5</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-4 + 1d10]]}} ">-4</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-3 + 1d10]]}} ">-3</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-2 + 1d10]]}} ">-2</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[-1 + 1d10]]}} ">-1</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[0 + 1d10]]}} ">Unmodified</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[1 + 1d10]]}} ">+1</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[2 + 1d10]]}} ">+2</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[3 + 1d10]]}} ">+3</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[4 + 1d10]]}} ">+4</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[5 + 1d10]]}} ">+5</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[6 + 1d10]]}} ">+6</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[7 + 1d10]]}} ">+7</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[8 + 1d10]]}} ">+8</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[9 + 1d10]]}} ">+9</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[10 + 1d10]]}} ">+10</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[11 + 1d10]]}} ">+11</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[12 + 1d10]]}} ">+12</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[13 + 1d10]]}} ">+13</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[14 + 1d10]]}} ">+14</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[15 + 1d10]]}} ">+15</button>
+    <br>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[16 + 1d10]]}} ">+16</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[17 + 1d10]]}} ">+17</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[18 + 1d10]]}} ">+18</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[19 + 1d10]]}} ">+19</button>
+    <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=GM Roll}} {{header=NPC Action}} {{roll=[[20 + 1d10]]}} ">+20</button>
+  </div>
+  <div class="sectionbox widthpercent100 borderred">
+    <h3>NPC Grunts</h3>
+	<div class="npc-holder">
+    <div class="sectionbox widthpercent100">
+      <div class="sectionbox widthpercent10 borderblack">Edit</div>
+      <div class="sectionbox widthpercent10 borderblack">Name</div>
+      <div class="sectionbox widthpercent10 borderblack">Initiative</div>
+      <div class="sectionbox widthpercent10 borderblack">Skill</div>
+      <div class="sectionbox widthpercent10 borderblack">Skill</div>
+      <div class="sectionbox widthpercent10 borderblack">Skill</div>
+      <div class="sectionbox widthpercent10 borderblack">Skill</div>
+      <div class="sectionbox widthpercent10 borderblack">Penalty</div>
+      <div class="sectionbox widthpercent10 borderblack">DMG1</div>
+      <div class="sectionbox widthpercent10 borderblack">DMG2</div>
+    </div>
+    <fieldset class="repeating_npclist">
+      <div class="sectionbox widthpercent100">
+        <div class="sectionbox widthpercent10 bordergray">
+          <input class="npc-hidable" type="checkbox" name="attr_repeating_editmodecheckbox">
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_name">
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+  		  <button type="roll" name="roll_repeating_npc_skill1" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=@{repeating_npc_name}}} {{header=NPC Initiative}} {{roll=[[@{repeating_npc_initiative_roll} + @{repeating_npc_penalty} + 1d10]]}}"> <span>Initiative</span> </button>
+		</div>
+        <div class="sectionbox widthpercent10 bordergray">
+          <button type="roll" name="roll_repeating_npc_skill1" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=@{repeating_npc_name}}} {{header=@{repeating_npc_skill1}}} {{roll=[[@{repeating_npc_skill1_roll} + @{repeating_npc_penalty} + 1d10]]}}"> <span name="attr_repeating_npc_skill1"></span> </button>
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+          <button type="roll" name="roll_repeating_npc_skill2" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=@{repeating_npc_name}}} {{header=@{repeating_npc_skill2}}} {{roll=[[@{repeating_npc_skill2_roll} + @{repeating_npc_penalty} + 1d10]]}}"> <span name="attr_repeating_npc_skill2"></span> </button>
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+          <button type="roll" name="roll_repeating_npc_skill3" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=@{repeating_npc_name}}} {{header=@{repeating_npc_skill3}}} {{roll=[[@{repeating_npc_skill3_roll} + @{repeating_npc_penalty} + 1d10]]}}"> <span name="attr_repeating_npc_skill3"></span> </button>
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+          <button type="roll" name="roll_repeating_npc_skill4" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{charactername=@{repeating_npc_name}}} {{header=@{repeating_npc_skill4}}} {{roll=[[@{repeating_npc_skill4_roll} + @{repeating_npc_penalty} + 1d10]]}}"> <span name="attr_repeating_npc_skill4"></span> </button>
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+			<select class="sheet-npc-hidable" name="attr_repeating_npc_penalty">
+			  <option value="20">+20</option>
+			  <option value="19">+19</option>
+			  <option value="18">+18</option>
+			  <option value="17">+17</option>
+			  <option value="16">+16</option>
+			  <option value="15">+15</option>
+			  <option value="14">+14</option>
+			  <option value="13">+13</option>
+			  <option value="12">+12</option>
+			  <option value="11">+11</option>
+			  <option value="10">+10</option>
+			  <option value="9">+9</option>
+			  <option value="8">+8</option>
+			  <option value="7">+7</option>
+			  <option value="6">+6</option>
+			  <option value="5">+5</option>
+			  <option value="4">+4</option>
+			  <option value="3">+3</option>
+			  <option value="2">+2</option>
+			  <option value="1">+1</option>
+			  <option value="0" SELECTED>0</option>
+			  <option value="-1">-1</option>
+			  <option value="-2">-2</option>
+			  <option value="-3">-3</option>
+			  <option value="-4">-4</option>
+			  <option value="-5">-5</option>
+			  <option value="-6">-6</option>
+			  <option value="-7">-7</option>
+			  <option value="-8">-8</option>
+			  <option value="-9">-9</option>
+			  <option value="-10">-10</option>
+			  <option value="-11">-11</option>
+			  <option value="-12">-12</option>
+			  <option value="-13">-13</option>
+			  <option value="-14">-14</option>
+			  <option value="-15">-15</option>
+			  <option value="-16">-16</option>
+			  <option value="-17">-17</option>
+			  <option value="-18">-18</option>
+			  <option value="-18">-19</option>
+			  <option value="-18">-20</option>
+			</select>
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+		  <button type="roll" name="roll_repeating_npc_dmg1" value="@{repeating_npc_name} does [[@{repeating_npc_dmg1_roll}d6]] damage with @{repeating_npc_dmg1}."><span name="attr_repeating_npc_dmg1"></span></button>
+        </div>
+        <div class="sectionbox widthpercent10 bordergray">
+		  <button type="roll" name="roll_repeating_npc_dmg2" value="@{repeating_npc_name} does [[@{repeating_npc_dmg2_roll}d6]] damage with @{repeating_npc_dmg2}."><span name="attr_repeating_npc_dmg2"></span></button>
+        </div>
+      </div>
+      <input type="checkbox" name="attr_repeating_editmodecheckbox" class="sheet-hidden-repeating-checkbox">
+      <div class="sectionbox widthpercent100 sheet-repeating-hidable">
+        <div class="sectionbox widthpercent20 borderblue"> LABELS </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          REF
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill1">
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill2">
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill3">
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill4">
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          ----
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_dmg1">
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_dmg2">
+        </div>
+      </div>
+      <input type="checkbox" name="attr_repeating_editmodecheckbox" class="sheet-hidden-repeating-checkbox">
+      <div class="sectionbox widthpercent100 sheet-repeating-hidable">
+        <div class="sectionbox widthpercent20 bordergreen"> VALUES </div>
+        <div class="sectionbox widthpercent10 bordergreen">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_initiative_roll">
+        </div>
+        <div class="sectionbox widthpercent10 bordergreen">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill1_roll">
+        </div>
+        <div class="sectionbox widthpercent10 bordergreen">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill2_roll">
+        </div>
+        <div class="sectionbox widthpercent10 bordergreen">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill3_roll">
+        </div>
+        <div class="sectionbox widthpercent10 bordergreen">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_skill4_roll">
+        </div>
+        <div class="sectionbox widthpercent10 bordergreen">
+          ----
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_dmg1_roll">
+        </div>
+        <div class="sectionbox widthpercent10 borderblue">
+          <input class="npc-hidable" type="text" name="attr_repeating_npc_dmg2_roll">
+        </div>
+      </div>
+    </fieldset>
+	  </div>
+  </div>
+<hr>
+  <button type="roll" value="&{template:jskgm1}{{critroll=[[1d10]]}}{{templatecolor=@{templatecolor}}} {{charactername=@{charactername}}} {{header=Skillname}} {{roll=[[@{dex} + @{brawlingroll} + @{finalmodifier} + 1d10]]}} {{footer=This is how footer text will look, if there is any such text on the action being taken.}}">Test Roll</button>
+	<hr>
+  <input type="checkbox" id="gmbutton2" class="sheet-gm-checkbox" name="attr_gmhidecheckbox">Click here to hide GM tools and show the player section.
+</div>-->
+
+<rolltemplate class="sheet-rolltemplate-jsk1">
+  <div class="templatecontainer">
+    <div class="redbordertop">&nbsp;</div>
+    <div class="redborderleft">
+      <div class="{{templatecolor}}">{{#charactername}}{{charactername}}{{/charactername}}</div>
+      <div class="header">{{#header}}{{header}}{{/header}}</div>
+      <div class="roll">{{roll}}</div>
+      {{#rollWasCrit() roll}}
+      <div class="crit">CRITICAL SUCCESS!<br>
+        Add {{critroll}} to roll </div>
+      {{/rollWasCrit() roll}}
+      {{#rollWasFumble() roll}}
+      <div class="fail">CRITICAL FAILURE!<br>
+        Subtract {{critroll}} from roll </div>
+      {{/rollWasFumble() roll}}
+      {{#footer}}
+      <div class="footer">{{footer}}</div>
+      {{/footer}} </div>
+    <div class="redborderbot">&nbsp;</div>
+  </div>
+</rolltemplate>
+<rolltemplate class="sheet-rolltemplate-jsk2">
+  <div class="templatecontainer">
+    <div class="redbordertop">&nbsp;</div>
+    <div class="redborderleft">
+      <div class="{{templatecolor}}">{{#charactername}}{{charactername}}{{/charactername}}</div>
+      <div class="header">{{#header}}{{header}}{{/header}}</div>
+      <div class="roll">{{roll}}</div>
+      {{#footer}}
+      <div class="footer">{{footer}}</div>
+      {{/footer}} </div>
+    <div class="redborderbot">&nbsp;</div>
+  </div>
+</rolltemplate>
+<rolltemplate class="sheet-rolltemplate-jskgm1">
+  <div class="gmtemplatecontainer">
+    <div class="redbordertop">&nbsp;</div>
+    <div class="redborderleft">
+      <div class="charactername-gm">{{#charactername}}{{charactername}}{{/charactername}}</div>
+      <div class="header">{{#header}}{{header}}{{/header}}</div>
+      <div class="roll">{{roll}}</div>
+      {{#rollWasCrit() roll}}
+      <div class="crit">CRITICAL SUCCESS!<br>
+        Add {{critroll}} to roll </div>
+      {{/rollWasCrit() roll}}
+      {{#rollWasFumble() roll}}
+      <div class="fail">CRITICAL FAILURE!<br>
+        Subtract {{critroll}} from roll </div>
+      {{/rollWasFumble() roll}}
+      {{#footer}}
+      <div class="footer">{{footer}}</div>
+      {{/footer}} </div>
+    <div class="redborderbot">&nbsp;</div>
+  </div>
+</rolltemplate>
+</body>
+</html>
