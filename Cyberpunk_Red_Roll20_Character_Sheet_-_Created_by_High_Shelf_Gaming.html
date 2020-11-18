@@ -107,7 +107,7 @@ function update_hp() {
 	
 		var will = Number(values.will);
 		var body = Number(values.body);
-		var setmax = Math.floor((((body+will)/2)*5)+(10));
+		var setmax = ((Math.ceil((body+will)/2))*5)+10;
 		var sethalf = Math.floor(setmax/2);
 		var setdeath = Math.floor(body);
 		setAttrs({
